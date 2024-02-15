@@ -32,6 +32,8 @@ void setup() {
   pinMode(pwmPin, OUTPUT);
   pinMode(relayPin1, OUTPUT);
   pinMode(relayPin2, OUTPUT);
+  pinMode(bluetoothRx, OUTPUT);
+  digitalWrite(bluetoothRx, LOW);
 
   // Set up Timer1 to generate a 2kHz PWM signal on pin 5
   Timer1.initialize(0.1);  // 500 microseconds (2kHz)
@@ -72,54 +74,54 @@ motorStates charToMotorStates(char state) {
 
 void loop() {
 
-  if (Serial.available() > 0) 
+  while(Serial.available() > 0) 
   {
     receivedChar = Serial.read();
     motorStatus = charToMotorStates(receivedChar);
-  }
 
-  switch (motorStatus) 
-  {
-    case motorStates::FRONT:
-      front();
-      break;
-    case motorStates::BACK:
-      back();
-      break;
-    case motorStates::SPEED0:
-      Speed = 0;
-      break;
-    case motorStates::SPEED1:
-      Speed = 22;
-      break;
-    case motorStates::SPEED2:
-      Speed = 44;
-      break;
-    case motorStates::SPEED3:
-      Speed = 66;
-      break;
-    case motorStates::SPEED4:
-      Speed = 88;
-      break;
-    case motorStates::SPEED5:
-      Speed = 110;
-      break;
-    case motorStates::SPEED6:
-      Speed = 132;
-      break;
-    case motorStates::SPEED7:
-      Speed = 154;
-      break;
-    case motorStates::SPEED8:
-      Speed = 176;
-      break;
-    case motorStates::SPEED9:
-      Speed = 198;
-      break;
-    case motorStates::SPEED10:
-      Speed = 218;
-      break;
+    switch (motorStatus) 
+    {
+      case motorStates::FRONT:
+        front();
+        break;
+      case motorStates::BACK:
+        back();
+        break;
+      case motorStates::SPEED0:
+        Speed = 0;
+        break;
+      case motorStates::SPEED1:
+        Speed = 22;
+        break;
+      case motorStates::SPEED2:
+        Speed = 44;
+        break;
+      case motorStates::SPEED3:
+        Speed = 66;
+        break;
+      case motorStates::SPEED4:
+        Speed = 88;
+        break;
+      case motorStates::SPEED5:
+        Speed = 110;
+        break;
+      case motorStates::SPEED6:
+        Speed = 132;
+        break;
+      case motorStates::SPEED7:
+        Speed = 154;
+        break;
+      case motorStates::SPEED8:
+        Speed = 176;
+        break;
+      case motorStates::SPEED9:
+        Speed = 198;
+        break;
+      case motorStates::SPEED10:
+        Speed = 218;
+        break;
+    }
+    Timer1.pwm(pwmPin, Speed);
+    Serial.println(Speed);
   }
-  Timer1.pwm(pwmPin, Speed);
-  Serial.println(Speed);
 }
