@@ -4,29 +4,37 @@
 constexpr uint8_t relayPin1 = 3;
 constexpr uint8_t relayPin2 = 4;
 constexpr uint8_t pwmPin = 9;
+constexpr uint8_t bluetoothRx = 0; // Using hardware UART RX pin
 
-static const uint8_t buf_len = 5;
 char receivedChar;
-char buf[buf_len];
-uint8_t idx = 0;
 int Speed = 0;
-double volts = 0.00;
 
 enum class motorStates : char {
   FRONT = 'F',
-  BACK = 'B'
+  BACK = 'B',
+  SPEED0 = '0',
+  SPEED1 = '1',
+  SPEED2 = '2',
+  SPEED3 = '3',
+  SPEED4 = '4',
+  SPEED5 = '5',
+  SPEED6 = '6',
+  SPEED7 = '7',
+  SPEED8 = '8',
+  SPEED9 = '9',
+  SPEED10 = 'q',
 };
 motorStates motorStatus = motorStates::FRONT;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600); // Initialize Serial for debugging
 
   pinMode(pwmPin, OUTPUT);
   pinMode(relayPin1, OUTPUT);
   pinMode(relayPin2, OUTPUT);
 
   // Set up Timer1 to generate a 2kHz PWM signal on pin 5
-  Timer1.initialize(500);  // 500 microseconds (2kHz)
+  Timer1.initialize(0.1);  // 500 microseconds (2kHz)
   Timer1.pwm(pwmPin, 0);
 }
 
@@ -42,58 +50,76 @@ void back() {
   Serial.print("Back: ");
 }
 
-void clearBuffer() {
-  for (int i = 0; i < buf_len; i++) {
-    buf[i] = 0;
-  }
-}
-
 motorStates charToMotorStates(char state) {
   switch (state) {
     case 'F': return motorStates::FRONT;
     case 'f': return motorStates::FRONT;
     case 'B': return motorStates::BACK;
     case 'b': return motorStates::BACK;
+    case '0': return motorStates::SPEED0;
+    case '1': return motorStates::SPEED1;
+    case '2': return motorStates::SPEED2;
+    case '3': return motorStates::SPEED3;
+    case '4': return motorStates::SPEED4;
+    case '5': return motorStates::SPEED5;
+    case '6': return motorStates::SPEED6;
+    case '7': return motorStates::SPEED7;
+    case '8': return motorStates::SPEED8;
+    case '9': return motorStates::SPEED9;
+    case 'q': return motorStates::SPEED10;
   }
 }
 
 void loop() {
-  while ( {
+
+  if (Serial.available() > 0) 
+  {
     receivedChar = Serial.read();
-
-    if (receivedChar == 'F' || receivedChar == 'f' || receivedChar == 'B' || receivedChar == 'b') {
-      motorStatus = charToMotorStates(receivedChar);
-    } else if (receivedChar == '\n') {
-      Speed = atoi(buf);
-
-      if (idx > 4 || Speed > 1024) {
-        Serial.println("Invalid input, \nPlease enter values between 0 to 1024\nF or f for Front \nB or b for back.");
-        Speed = 0;
-      } else {
-        Speed = map(Speed, 0, 1024, 0, 76);  //Convert the voltage from 0v to 3.3v pwm signals
-        volts = map(Speed, 0, 76, 0, 3.3);
-        Timer1.pwm(pwmPin, Speed);  // PWM duty cycle (0 to 1023, where 0 is 0% and 1023 is 100%)
-      }
-      idx = 0;
-      clearBuffer();
-    } else {
-      // Only append if index is not over message limit
-      if (idx < buf_len - 1) {
-        buf[idx] = receivedChar;
-        idx++;
-      }
-    }
+    motorStatus = charToMotorStates(receivedChar);
   }
 
-  switch (motorStatus) {
+  switch (motorStatus) 
+  {
     case motorStates::FRONT:
       front();
       break;
     case motorStates::BACK:
       back();
       break;
+    case motorStates::SPEED0:
+      Speed = 0;
+      break;
+    case motorStates::SPEED1:
+      Speed = 22;
+      break;
+    case motorStates::SPEED2:
+      Speed = 44;
+      break;
+    case motorStates::SPEED3:
+      Speed = 66;
+      break;
+    case motorStates::SPEED4:
+      Speed = 88;
+      break;
+    case motorStates::SPEED5:
+      Speed = 110;
+      break;
+    case motorStates::SPEED6:
+      Speed = 132;
+      break;
+    case motorStates::SPEED7:
+      Speed = 154;
+      break;
+    case motorStates::SPEED8:
+      Speed = 176;
+      break;
+    case motorStates::SPEED9:
+      Speed = 198;
+      break;
+    case motorStates::SPEED10:
+      Speed = 218;
+      break;
   }
-
-  // Serial.println(Speed);
-  Serial.println(volts);
+  Timer1.pwm(pwmPin, Speed);
+  Serial.println(Speed);
 }
